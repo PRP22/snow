@@ -73,13 +73,18 @@
 
 
         /* Snowflakes for the "burst" effect on tap */
-        .tap-snowflake {
+        .tap-particle {
             position: absolute;
-            background: white;
-            border-radius: 50%;
             pointer-events: none;
             z-index: 9999;
             animation: burst-out 1s forwards ease-out;
+            /* background and border-radius removed from base class */
+        }
+        
+        /* This class is for the snowflake dots */
+        .tap-snowflake-dot {
+            background: white;
+            border-radius: 50%;
         }
 
         @keyframes burst-out {
@@ -100,6 +105,11 @@
             cursor: pointer;
             animation: bob 3s ease-in-out infinite;
             transition: transform 0.3s;
+            width: 120px; /* Base width */
+            height: 200px; /* Total height */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         .snowman:hover {
             transform: scale(1.05);
@@ -136,6 +146,23 @@
         }
         .eye.left { left: 25px; }
         .eye.right { right: 25px; }
+        
+        .mouth {
+            position: absolute;
+            width: 30px;
+            height: 10px;
+            bottom: 25px;
+            left: 25px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .mouth-dot {
+            width: 5px;
+            height: 5px;
+            background: #333;
+            border-radius: 50%;
+        }
+
         .nose {
             position: absolute;
             width: 0;
@@ -147,6 +174,73 @@
             left: 33px;
             border-radius: 2px;
         }
+
+        /* New Snowman Hat */
+        .top-hat {
+            position: absolute;
+            width: 50px;
+            height: 40px;
+            background: #333;
+            border-radius: 4px 4px 0 0;
+            top: -35px; /* Positioned above the head */
+            left: 15px;
+            z-index: 3;
+            border: 2px solid #222;
+        }
+        .hat-brim {
+            position: absolute;
+            width: 70px;
+            height: 10px;
+            background: #333;
+            border-radius: 4px;
+            top: -5px; /* Sits on top of the head */
+            left: 5px;
+            z-index: 3;
+            border: 2px solid #222;
+        }
+
+        /* New Snowman Scarf */
+        .scarf {
+            position: absolute;
+            width: 85px;
+            height: 15px;
+            background: #e74c3c; /* Red scarf */
+            border-radius: 4px;
+            top: 60px; /* Around the neck */
+            z-index: 3;
+            border: 2px solid #c0392b;
+        }
+        .scarf::after {
+            content: '';
+            position: absolute;
+            width: 15px;
+            height: 30px;
+            background: #e74c3c;
+            border: 2px solid #c0392b;
+            border-radius: 4px;
+            top: 10px;
+            right: 10px;
+        }
+
+        /* New Snowman Arms */
+        .arm {
+            position: absolute;
+            width: 50px;
+            height: 5px;
+            background: #8B4513; /* Brown */
+            border-radius: 2px;
+            top: 90px;
+            z-index: 0;
+        }
+        .arm.left {
+            left: -20px;
+            transform: rotate(30deg);
+        }
+        .arm.right {
+            right: -20px;
+            transform: rotate(-30deg);
+        }
+        
         .button {
             position: absolute;
             width: 10px;
@@ -178,6 +272,29 @@
             0%, 100% { transform: rotate(-2deg) translateY(0); }
             50% { transform: rotate(2deg) translateY(-5px); }
         }
+
+        /* New animation for the letter-opening snow burst */
+        .letter-burst-snowflake {
+            position: absolute;
+            top: -50px; /* Start just off-screen */
+            color: white;
+            opacity: 0.9;
+            z-index: 198; /* Just behind the letter overlay */
+            pointer-events: none;
+            will-change: transform, opacity;
+        }
+
+        @keyframes letter-fall {
+            0% {
+                transform: translateY(0vh);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(110vh); /* Fall all the way off-screen */
+                opacity: 0;
+            }
+        }
+
 
         /* Envelope Icon */
         #letter-icon {
@@ -300,10 +417,20 @@
             <!-- CSS Snowman -->
             <div id="snowman" class="snowman">
                 <div class="snowman-head">
+                    <div class="top-hat"></div>
+                    <div class="hat-brim"></div>
                     <div class="eye left"></div>
                     <div class="eye right"></div>
                     <div class="nose"></div>
+                    <div class="mouth">
+                        <div class="mouth-dot"></div>
+                        <div class="mouth-dot"></div>
+                        <div class="mouth-dot"></div>
+                    </div>
                 </div>
+                <div class="scarf"></div>
+                <div class="arm left"></div>
+                <div class="arm right"></div>
                 <div class="snowman-body">
                     <div class="button button1"></div>
                     <div class="button button2"></div>
@@ -390,7 +517,26 @@
             // --- Sound Setup ---
             // Start Tone.js on any user interaction
             let soundReady = false;
-            const synth = new Tone.Synth().toDestination();
+            
+            // Create separate synths for different sounds
+            const burstSynth = new Tone.MembraneSynth({
+                pitchDecay: 0.01,
+                octaves: 2,
+                envelope: { attack: 0.001, decay: 0.1, sustain: 0.01, release: 0.01 }
+            }).toDestination();
+
+            const penguinSynth = new Tone.FMSynth({
+                modulationIndex: 10,
+                harmonicity: 1.5,
+                envelope: { attack: 0.01, decay: 0.1, sustain: 0.05, release: 0.1 },
+                modulationEnvelope: { attack: 0.01, decay: 0.05, sustain: 0, release: 0.1 }
+            }).toDestination();
+            
+            const letterSynth = new Tone.Synth({
+                oscillator: { type: 'sine' },
+                envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.3 }
+            }).connect(new Tone.Reverb(0.5).toDestination());
+
             
             async function initializeAudio() {
                 if (!soundReady) {
@@ -440,11 +586,14 @@
                 // 1. Vibrate
                 if (navigator.vibrate) {
                     navigator.vibrate(50); // Vibrate for 50ms
+                    console.log("Vibration triggered!"); // Added for debugging
+                } else {
+                    console.log("Vibration not supported on this device."); // Added for debugging
                 }
 
                 // 2. Play Sound
                 if (soundReady) {
-                    synth.triggerAttackRelease("C5", "8n"); // Play a C5 note
+                    burstSynth.triggerAttackRelease("C2", "8n"); // Play a C5 note
                 }
                 
                 // 3. Create Snow Particles
@@ -454,7 +603,7 @@
 
                 for (let i = 0; i < burstAmount; i++) {
                     const snowflake = document.createElement('div');
-                    snowflake.classList.add('tap-snowflake');
+                    snowflake.classList.add('tap-particle');
                     
                     // Set start position
                     snowflake.style.left = `${tapX}px`;
@@ -506,11 +655,14 @@
                 // 1. Vibrate
                 if (navigator.vibrate) {
                     navigator.vibrate(50);
+                    console.log("Vibration triggered! (Burst)"); // Added for debugging
+                } else {
+                    console.log("Vibration not supported on this device."); // Added for debugging
                 }
 
                 // 2. Play Sound
                 if (soundReady) {
-                    synth.triggerAttackRelease("C5", "8n");
+                    burstSynth.triggerAttackRelease("C2", "8n");
                 }
                 
                 // 3. Create Snow & Heart Particles
@@ -553,6 +705,35 @@
             }
 
 
+            // --- NEW: Letter Open Snow Burst ---
+            function createLetterSnowBurst() {
+                const burstAmount = 75; // Lots of snow!
+                for (let i = 0; i < burstAmount; i++) {
+                    const snowflake = document.createElement('div');
+                    snowflake.innerHTML = '❄️';
+                    snowflake.classList.add('letter-burst-snowflake');
+                    
+                    // Random horizontal position
+                    snowflake.style.left = `${Math.random() * 100}vw`;
+                    // Random size
+                    snowflake.style.fontSize = `${Math.random() * 10 + 15}px`; // 15px to 25px
+                    
+                    // Animation settings
+                    const duration = Math.random() * 1 + 1; // 1 to 2s
+                    const delay = Math.random() * 0.5; // 0 to 0.5s delay
+                    
+                    // Apply the new keyframe animation
+                    snowflake.style.animation = `letter-fall ${duration}s ${delay}s ease-in forwards`;
+                    
+                    document.body.appendChild(snowflake);
+
+                    // Remove after animation (duration + delay + 500ms buffer)
+                    setTimeout(() => {
+                        snowflake.remove();
+                    }, (duration + delay) * 1000 + 500); 
+                }
+            }
+
             // --- Character Messages ---
             const cuteMessages = {
                 snowman: [
@@ -575,11 +756,18 @@
                 // Vibrate
                 if (navigator.vibrate) {
                     navigator.vibrate([100, 50, 100]); // A little pattern
+                    console.log("Vibration triggered! (Character)"); // Added for debugging
+                } else {
+                    console.log("Vibration not supported on this device."); // Added for debugging
                 }
                 
                 // Play a different note
                 if (soundReady) {
-                    synth.triggerAttackRelease("E5", "8n");
+                    if (type === 'penguin') {
+                        penguinSynth.triggerAttackRelease("G4", "16n");
+                    } else if (type === 'snowman') {
+                        penguinSynth.triggerAttackRelease("E4", "16n"); // Different pitch for snowman
+                    }
                 }
 
                 // Clear any existing timer
@@ -607,12 +795,18 @@
                 // Vibrate
                 if (navigator.vibrate) {
                     navigator.vibrate(100); // A solid vibrate
+                    console.log("Vibration triggered! (Letter)"); // Added for debugging
+                } else {
+                    console.log("Vibration not supported on this device."); // Added for debugging
                 }
                 
                 // Play a special note
                 if (soundReady) {
-                    synth.triggerAttackRelease("G5", "4n"); // A longer, higher note
+                    letterSynth.triggerAttackRelease("G5", "4n"); // A longer, higher note
                 }
+                
+                // *** TRIGGER THE SNOW BURST ***
+                createLetterSnowBurst();
                 
                 letterOverlay.classList.add('show');
                 letterModal.classList.add('show');

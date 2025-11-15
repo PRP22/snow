@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For My Snowy Love ❄️</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js for sound -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <!-- Google Font 'Mali' (cute, handwritten) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Mali', cursive;
+            background: linear-gradient(to bottom, #a0d2eb, #e8f0fe, #ffffff);
+            /* overflow-hidden is crucial to prevent scrolling from animations */
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        /* Container for the continuous falling snow */
+        #snow-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .falling-snowflake {
+            position: absolute;
+            top: -20px;
+            font-size: 20px;
+            color: white;
+            opacity: 0.8;
+            animation: fall linear infinite;
+        }
+
+        /* 3 different fall animations for variety */
+        @keyframes fall {
+            0% { transform: translateY(0vh) translateX(0vw); opacity: 0.8; }
+            100% { transform: translateY(105vh) translateX(2vw); opacity: 0.8; }
+        }
+
+        .falling-snowflake:nth-child(2) {
+            font-size: 14px;
+            animation-name: fall2;
+            animation-duration: 15s;
+            animation-delay: 2s;
+        }
+        @keyframes fall2 {
+            0% { transform: translateY(0vh) translateX(0vw); opacity: 0.6; }
+            100% { transform: translateY(105vh) translateX(-3vw); opacity: 0.6; }
+        }
+
+        .falling-snowflake:nth-child(3) {
+            font-size: 18px;
+            animation-name: fall3;
+            animation-duration: 12s;
+            animation-delay: 5s;
+        }
+        @keyframes fall3 {
+            0% { transform: translateY(0vh) translateX(0vw); opacity: 0.7; }
+            100% { transform: translateY(105vh) translateX(1vw); opacity: 0.7; }
+        }
+
+
+        /* Snowflakes for the "burst" effect on tap */
+        .tap-snowflake {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            animation: burst-out 1s forwards ease-out;
+        }
+
+        @keyframes burst-out {
+            0% {
+                transform: scale(0.5);
+                opacity: 1;
+            }
+            100% {
+                /* Random translate values will be set by JS */
+                transform: scale(0);
+                opacity: 0;
+            }
+        }
+
+        /* Snowman styles */
+        .snowman {
+            position: relative;
+            cursor: pointer;
+            animation: bob 3s ease-in-out infinite;
+            transition: transform 0.3s;
+        }
+        .snowman:hover {
+            transform: scale(1.05);
+        }
+
+        .snowman-head {
+            width: 80px;
+            height: 80px;
+            background: #fff;
+            border-radius: 50%;
+            border: 2px solid #d0d0d0;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .snowman-body {
+            width: 120px;
+            height: 120px;
+            background: #fff;
+            border-radius: 50%;
+            border: 2px solid #d0d0d0;
+            position: relative;
+            top: -15px;
+            z-index: 1;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .eye {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #333;
+            border-radius: 50%;
+            top: 30px;
+        }
+        .eye.left { left: 25px; }
+        .eye.right { right: 25px; }
+        .nose {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 7px solid transparent;
+            border-right: 7px solid transparent;
+            border-bottom: 20px solid #f39c12; /* Carrot orange */
+            top: 38px;
+            left: 33px;
+            border-radius: 2px;
+        }
+        .button {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #333;
+            border-radius: 50%;
+            left: 55px; /* Centered */
+        }
+        .button1 { top: 20px; }
+        .button2 { top: 45px; }
+        .button3 { top: 70px; }
+
+        @keyframes bob {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Penguin styles */
+        #penguin {
+            cursor: pointer;
+            animation: waddle 2s ease-in-out infinite;
+            transition: transform 0.3s;
+        }
+        #penguin:hover {
+            transform: scale(1.1);
+        }
+        
+        @keyframes waddle {
+            0%, 100% { transform: rotate(-2deg) translateY(0); }
+            50% { transform: rotate(2deg) translateY(-5px); }
+        }
+
+        /* Envelope Icon */
+        #letter-icon {
+            position: absolute;
+            bottom: 80px; /* Above the instruction text */
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 50px;
+            cursor: pointer;
+            z-index: 30;
+            transition: transform 0.3s ease;
+            animation: wiggle 2.5s ease-in-out infinite;
+        }
+        #letter-icon:hover {
+            transform: translateX(-50%) scale(1.1);
+            animation-play-state: paused;
+        }
+        
+        @keyframes wiggle {
+            0%, 100% { transform: translateX(-50%) rotate(0deg); }
+            25% { transform: translateX(-50%) rotate(-5deg); }
+            75% { transform: translateX(-50%) rotate(5deg); }
+        }
+
+        /* Letter Modal */
+        #letter-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 199;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-out;
+        }
+        #letter-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: 90vw;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            background: #fffef0; /* Creamy paper color */
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            padding: 40px 30px;
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease-out;
+        }
+        #letter-overlay.show,
+        #letter-modal.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #letter-modal.show {
+            transform: translate(-50%, -50%) scale(1);
+        }
+        #letter-close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 30px;
+            font-weight: bold;
+            color: #888;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        #letter-close-btn:hover {
+            color: #333;
+        }
+
+        /* Message box for cute words */
+        #message-box {
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            opacity: 0;
+            transition: all 0.3s ease-out;
+            pointer-events: none;
+            max-width: 90vw;
+            text-align: center;
+        }
+
+        #message-box.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
+    </style>
+</head>
+<body class="h-screen w-screen relative overflow-hidden">
+
+    <!-- This div will hold the continuously falling snow -->
+    <div id="snow-container"></div>
+
+    <!-- Main content area -->
+    <div class="relative z-20 flex flex-col items-center justify-center h-full text-center p-4">
+        
+        <!-- Title -->
+        <h1 class="text-4xl md:text-6xl font-bold text-gray-800" style="text-shadow: 2px 2px 8px rgba(0,0,0,0.1);">
+            For My Snowy Love
+        </h1>
+        <p class="text-xl md:text-2xl text-pink-600 font-semibold">You're the cutest! 💖</p>
+
+        <!-- Characters -->
+        <div class="flex flex-col md:flex-row items-center justify-around w-full max-w-2xl mt-16">
+            
+            <!-- CSS Snowman -->
+            <div id="snowman" class="snowman">
+                <div class="snowman-head">
+                    <div class="eye left"></div>
+                    <div class="eye right"></div>
+                    <div class="nose"></div>
+                </div>
+                <div class="snowman-body">
+                    <div class="button button1"></div>
+                    <div class="button button2"></div>
+                    <div class="button button3"></div>
+                </div>
+            </div>
+
+            <!-- SVG Penguin -->
+            <div id="penguin" class="w-32 md:w-40 mt-10 md:mt-0">
+                <!-- Embedded SVG for the penguin -->
+                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <g>
+                        <!-- Body -->
+                        <path d="M50,10 C25,10 10,30 10,55 C10,80 25,95 50,95 C75,95 90,80 90,55 C90,30 75,10 50,10 Z" fill="#333"/>
+                        <!-- Tummy -->
+                        <path d="M50,25 C35,25 25,40 25,55 C25,70 35,85 50,85 C65,85 75,70 75,55 C75,40 65,25 50,25 Z" fill="#fff"/>
+                        <!-- Eyes -->
+                        <circle cx="40" cy="45" r="5" fill="#333"/>
+                        <circle cx="60" cy="45" r="5" fill="#333"/>
+                        <circle cx="41" cy="44" r="2" fill="#fff"/>
+                        <circle cx="61" cy="44" r="2" fill="#fff"/>
+                        <!-- Beak -->
+                        <path d="M45,55 C47,52 53,52 55,55 C53,58 47,58 45,55 Z" fill="#f39c12"/>
+                        <!-- Feet -->
+                        <path d="M35,80 C25,85 25,95 35,90 Z" fill="#f39c12" transform="rotate(-10 30 87.5)"/>
+                        <path d="M65,80 C75,85 75,95 65,90 Z" fill="#f39c12" transform="rotate(10 70 87.5)"/>
+                        <!-- Flipper Left -->
+                        <path d="M20,40 C10,50 10,70 20,80 C25,75 25,55 20,40 Z" fill="#333"/>
+                        <!-- Flipper Right -->
+                        <path d="M80,40 C90,50 90,70 80,80 C75,75 75,55 80,40 Z" fill="#333"/>
+                    </g>
+                </svg>
+            </div>
+
+        </div>
+        
+        <!-- Letter Icon -->
+        <div id="letter-icon" title="A letter for you!">💌</div>
+        
+        <!-- Instruction Text -->
+        <p class="text-gray-700 text-lg md:text-xl mt-16 absolute bottom-10">
+            Tap anywhere for a surprise... and tap the characters!
+        </p>
+    </div>
+
+    <!-- Letter Modal (hidden by default) -->
+    <div id="letter-overlay"></div>
+    <div id="letter-modal">
+        <span id="letter-close-btn">&times;</span>
+        <h2 class="text-3xl font-bold text-pink-600 mb-4">To My Cutest Snow Angel,</h2>
+        <div class="text-lg text-gray-800 space-y-4">
+            <p>
+                I just wanted to make this little snowy world for you because I know how much you love it. 
+                Seeing you happy makes me happier than anything.
+            </p>
+            <p>
+                You're my cozy fireplace in the middle of a blizzard, my favorite penguin, and the one I want to build snowmen with forever.
+            </p>
+            <p class="font-semibold text-right">
+                With all my love,<br>
+                Me ❤️
+            </p>
+        </div>
+    </div>
+
+    <!-- Message box (hidden by default) -->
+    <div id="message-box" class="text-2xl font-semibold text-gray-800">
+        <!-- Message content will be set by JS -->
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const snowContainer = document.getElementById('snow-container');
+            const messageBox = document.getElementById('message-box');
+            const snowman = document.getElementById('snowman');
+            const penguin = document.getElementById('penguin');
+            const letterIcon = document.getElementById('letter-icon');
+            const letterOverlay = document.getElementById('letter-overlay');
+            const letterModal = document.getElementById('letter-modal');
+            const letterCloseBtn = document.getElementById('letter-close-btn');
+            let messageTimer;
+
+            // --- Sound Setup ---
+            // Start Tone.js on any user interaction
+            let soundReady = false;
+            const synth = new Tone.Synth().toDestination();
+            
+            async function initializeAudio() {
+                if (!soundReady) {
+                    await Tone.start();
+                    soundReady = true;
+                    console.log('Audio is ready!');
+                }
+            }
+
+            // --- Continuous Falling Snow ---
+            function createFallingSnow() {
+                for (let i = 0; i < 50; i++) {
+                    const snowflake = document.createElement('div');
+                    snowflake.innerHTML = '❄️';
+                    snowflake.classList.add('falling-snowflake');
+                    
+                    // Random horizontal start position
+                    snowflake.style.left = `${Math.random() * 100}vw`;
+                    // Random animation duration
+                    const duration = Math.random() * 5 + 10; // 10 to 15 seconds
+                    snowflake.style.animationDuration = `${duration}s`;
+                    // Random animation delay
+                    snowflake.style.animationDelay = `${Math.random() * 10}s`;
+
+                    // Assign different animation classes
+                    const type = Math.floor(Math.random() * 3) + 1;
+                    if (type === 2) {
+                        snowflake.classList.add('fall2');
+                    } else if (type === 3) {
+                        snowflake.classList.add('fall3');
+                    }
+
+                    snowContainer.appendChild(snowflake);
+                }
+            }
+            createFallingSnow();
+
+            // --- Tap Burst Effect ---
+            function createSnowBurst(e) {
+                // Check if the click was on a character
+                if (e.target.closest('#snowman') || e.target.closest('#penguin')) {
+                    return;
+                }
+
+                initializeAudio(); // Ensure audio is started
+
+                // 1. Vibrate
+                if (navigator.vibrate) {
+                    navigator.vibrate(50); // Vibrate for 50ms
+                }
+
+                // 2. Play Sound
+                if (soundReady) {
+                    synth.triggerAttackRelease("C5", "8n"); // Play a C5 note
+                }
+                
+                // 3. Create Snow Particles
+                const burstAmount = 15;
+                const tapX = e.clientX;
+                const tapY = e.clientY;
+
+                for (let i = 0; i < burstAmount; i++) {
+                    const snowflake = document.createElement('div');
+                    snowflake.classList.add('tap-snowflake');
+                    
+                    // Set start position
+                    snowflake.style.left = `${tapX}px`;
+                    snowflake.style.top = `${tapY}px`;
+                    
+                    // Set particle size
+                    const size = Math.random() * 8 + 4; // 4px to 12px
+                    snowflake.style.width = `${size}px`;
+                    snowflake.style.height = `${size}px`;
+
+                    // Calculate random end position
+                    const endX = (Math.random() - 0.5) * 2 * 150; // -150px to +150px
+                    const endY = (Math.random() - 0.5) * 2 * 150; // -150px to +150px
+                    
+                    // Set the animation with custom properties
+                    // We need to set the final transform in the style
+                    // The keyframe will go from scale(0.5) to scale(0)
+                    // We use a custom property to set the translate part
+                    snowflake.style.setProperty('--end-x', `${endX}px`);
+                    snowflake.style.setProperty('--end-y', `${endY}px`);
+
+                    // We re-define the animation here to use the custom properties
+                    // It's a bit of a hack, but it's effective
+                    snowflake.style.animation = 'none';
+                    snowflake.offsetHeight; // Trigger reflow
+                    snowflake.style.animation = `burst-out-dynamic 1s forwards ease-out`;
+
+                    document.body.appendChild(snowflake);
+
+                    // Remove snowflake after animation
+                    setTimeout(() => {
+                        snowflake.remove();
+                    }, 1000);
+                }
+            }
+            
+            // This is a bit advanced: dynamically create keyframes
+            // A simpler way is to just set the transform in JS
+            // Let's do that instead for simplicity and reliability.
+
+            function createSnowBurstSimple(e) {
+                // Check if the click was on a character or the letter
+                if (e.target.closest('#snowman') || e.target.closest('#penguin') || e.target.closest('#letter-icon')) {
+                    return;
+                }
+
+                initializeAudio();
+
+                // 1. Vibrate
+                if (navigator.vibrate) {
+                    navigator.vibrate(50);
+                }
+
+                // 2. Play Sound
+                if (soundReady) {
+                    synth.triggerAttackRelease("C5", "8n");
+                }
+                
+                // 3. Create Snow & Heart Particles
+                const burstAmount = 15;
+                const tapX = e.clientX;
+                const tapY = e.clientY;
+
+                for (let i = 0; i < burstAmount; i++) {
+                    const particle = document.createElement('div');
+                    particle.classList.add('tap-particle');
+                    
+                    if (Math.random() < 0.3) { // 30% chance of being a heart
+                        particle.innerHTML = '💖';
+                        particle.style.fontSize = `${Math.random() * 10 + 12}px`; // 12px to 22px
+                    } else {
+                        // It's a snowflake dot
+                        particle.classList.add('tap-snowflake-dot');
+                        const size = Math.random() * 8 + 4;
+                        particle.style.width = `${size}px`;
+                        particle.style.height = `${size}px`;
+                    }
+                    
+                    particle.style.left = `${tapX}px`;
+                    particle.style.top = `${tapY}px`;
+
+                    const endX = (Math.random() - 0.5) * 2 * 150;
+                    const endY = (Math.random() - 0.5) * 2 * 150;
+                    
+                    // We apply the animation directly
+                    // The 'burst-out' keyframe handles opacity and scale
+                    // We'll add the translate transform here
+                    particle.style.transform = `translate(${endX}px, ${endY}px)`;
+                    
+                    document.body.appendChild(particle);
+
+                    setTimeout(() => {
+                        particle.remove();
+                    }, 1000);
+                }
+            }
+
+
+            // --- Character Messages ---
+            const cuteMessages = {
+                snowman: [
+                    "You melt my heart! ⛄",
+                    "You're the coolest person I know!",
+                    "Let's build a snow fort together!",
+                    "You're sweeter than hot cocoa.",
+                ],
+                penguin: [
+                    "Waddle I do without you? 🐧",
+                    "You're my favorite penguin!",
+                    "You make my heart flurry!",
+                    "You're perfectly cool.",
+                ]
+            };
+
+            function showMessage(type) {
+                initializeAudio(); // Start audio context on character tap too
+                
+                // Vibrate
+                if (navigator.vibrate) {
+                    navigator.vibrate([100, 50, 100]); // A little pattern
+                }
+                
+                // Play a different note
+                if (soundReady) {
+                    synth.triggerAttackRelease("E5", "8n");
+                }
+
+                // Clear any existing timer
+                if (messageTimer) {
+                    clearTimeout(messageTimer);
+                }
+
+                // Get a random message
+                const messages = cuteMessages[type];
+                const message = messages[Math.floor(Math.random() * messages.length)];
+                
+                messageBox.textContent = message;
+                messageBox.classList.add('show');
+
+                // Hide after 3 seconds
+                messageTimer = setTimeout(() => {
+                    messageBox.classList.remove('show');
+                }, 3000);
+            }
+
+            // --- Letter Modal Logic ---
+            function openLetter() {
+                initializeAudio(); // Start audio
+                
+                // Vibrate
+                if (navigator.vibrate) {
+                    navigator.vibrate(100); // A solid vibrate
+                }
+                
+                // Play a special note
+                if (soundReady) {
+                    synth.triggerAttackRelease("G5", "4n"); // A longer, higher note
+                }
+                
+                letterOverlay.classList.add('show');
+                letterModal.classList.add('show');
+            }
+
+            function closeLetter() {
+                letterOverlay.classList.remove('show');
+                letterModal.classList.remove('show');
+            }
+
+            // --- Event Listeners ---
+            document.body.addEventListener('click', createSnowBurstSimple);
+            
+            snowman.addEventListener('click', (e) => {
+                e.stopPropagation(); // Stop the event from bubbling to the body
+                showMessage('snowman');
+            });
+
+            penguin.addEventListener('click', (e) => {
+                e.stopPropagation(); // Stop the event from bubbling to the body
+                showMessage('penguin');
+            });
+            
+            // New Listeners for Letter
+            letterIcon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openLetter();
+            });
+            
+            letterCloseBtn.addEventListener('click', closeLetter);
+            letterOverlay.addEventListener('click', closeLetter);
+        });
+    </script>
+
+</body>
+</html>
